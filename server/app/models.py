@@ -5,11 +5,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 
-from six import python_2_unicode_compatible
 
-import uuid
-import pandas as pd
-import pytz
 from datetime import datetime
 
 # Django models go here

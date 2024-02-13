@@ -18,10 +18,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Env vars
 DATABASE            = os.environ.get('DATABASE', 'sqlite')
-DATABASE_NAME       = os.environ.get('DATABASE_NAME', 'rp')
+DATABASE_NAME       = os.environ.get('DATABASE_NAME', 'base')
 POSTGRES_HOST       = os.environ.get('POSTGRES_HOST', 'localhost')
 POSTGRES_PORT       = os.environ.get('POSTGRES_PORT', 5432)
-POSTGRES_USER       = os.environ.get('POSTGRES_USER', 'rp')
+POSTGRES_USER       = os.environ.get('POSTGRES_USER', 'base')
 POSTGRES_PASSWORD   = os.environ.get('POSTGRES_PASSWORD', 'development')
 
 # Quick-start development settings - unsuitable for production
@@ -66,7 +66,7 @@ MIDDLEWARE = [
     'django_structlog.middlewares.RequestMiddleware',
 ]
 
-ROOT_URLCONF = 'rp.urls'
+ROOT_URLCONF = 'base.urls'
 
 TEMPLATES = [
     {
@@ -84,7 +84,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'rp.wsgi.application'
+WSGI_APPLICATION = 'base.wsgi.application'
 
 
 # Database
@@ -113,7 +113,7 @@ CACHES = {
     },
     'main_postgres': {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'NEO4J_CACHE',
+        'LOCATION': 'MAIN_CACHE',
         'OPTIONS': {
             'MAX_ENTRIES': 10000
         }

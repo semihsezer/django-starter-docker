@@ -5,5 +5,4 @@ class Command(BaseCommand):
     help = 'Closes the specified poll for voting'
 
     def handle(self, *args, **options):
-        create_admin_user(username='admin', email='admin@local.com', password='admin123')
-        load_sample_data()
+        delete_sample_data()

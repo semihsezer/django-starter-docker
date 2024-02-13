@@ -1,7 +1,7 @@
 version: "3"
 services:
-  webserver:
-    image: rp
+  web:
+    image: django-starter-web
     build: .
     deploy:
       replicas: 1
@@ -10,17 +10,17 @@ services:
     environment:
         DATABASE: postgres
         POSTGRES_HOST: postgres
-        POSTGRES_USER: rp
+        POSTGRES_USER: base
         POSTGRES_PASSWORD: development
         LOG_LEVEL: INFO
     #command: bash -c "tail -f /dev/null"
-    command: bash -c "python manage.py makemigrations app && python manage.py migrate && python manage.py load_testing_data && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python manage.py makemigrations app && python manage.py migrate && python manage.py load_sample_data && python manage.py runserver 0.0.0.0:8000"
     ports:
         - "8000:8000"
     depends_on:
       - postgres
     networks:
-      - rp-net
+      - django-starter-net
     volumes:
       - ${REPO_ROOT}/server:/server
 
@@ -31,32 +31,14 @@ services:
       restart_policy:
         condition: on-failure
     environment:
-      POSTGRES_USER: rp
+      POSTGRES_USER: base
       POSTGRES_PASSWORD: development
     ports:
         - "5432:5432"
     networks:
-      - rp-net
+      - django-starter-net
     volumes:
       - ${REPO_ROOT}/.local/postgres:/var/lib/postgresql/data
 
-# NGINX For SSL Termination or Load Balancing
-#  nginx:
-#    image: nginx:1.16
-#    deploy:
-#      replicas: 1
-#      restart_policy:
-#        condition: on-failure
-#    ports:
-#        - "443:443"
-#    depends_on:
-#      - webserver
-#    networks:
-#      - rp-net
-#    volumes:
-#      - ${REPO_ROOT}/deploy/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
-#      - ${REPO_ROOT}/deploy/nginx/web.crt:/etc/nginx/web.crt
-#      - ${REPO_ROOT}/deploy/nginx/web.key:/etc/nginx/web.key
-
 networks:
-  rp-net:
+  django-starter-net:

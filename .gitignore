@@ -130,3 +130,5 @@ dmypy.json
 
 # Local
 .local
+
+.DS_Store

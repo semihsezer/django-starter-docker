@@ -11,12 +11,10 @@ import json
 
 import os
 import structlog
-import pandas as pd
 from collections import OrderedDict
 import requests
 
 import app.models as models
-import app.utils as utils
 from app.forms import SignUpForm
 
 
@@ -80,6 +78,7 @@ def signup(request):
 def account(request):
     user = request.user
     template = loader.get_template('account.html')
+    context = {}
     return HttpResponse(template.render(context, request))
 
 @login_required(login_url='/accounts/login/')

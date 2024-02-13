@@ -1,7 +1,7 @@
 FROM python:3.7
 
 RUN mkdir -p /server
-RUN apt-get update && apt-get install -y python-dev
+RUN apt-get update && apt-get install -y python-dev-is-python3
 ENV PYTHONPATH=/server
 
 WORKDIR /server
