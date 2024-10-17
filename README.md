@@ -10,7 +10,46 @@ Django Starter project with Docker dev environment and key Django dependencies. 
 - Frontend: Basic Bootstrap with Django Templates
 - Basic backend tests with Pytest
 
-## Local Setup with Docker
+## Template Values to Change
+1. Replace all occurrences of 'myapp' with shorthand name for this app
+   1. This includes `.env` file, `docker-compose.yml`, `render.yml`
+
+## Backend Virtualenv setup (recommended)
+
+1. Start a virtual environment
+   python -m venv .venv
+
+2. Activate the virtual environment
+   source .venv/bin/activate
+
+3. Install requirements
+   pip install -r server/requirements.txt
+
+4. Start the db and other services
+   make start_db
+
+5. Run migrations and create initial user
+   make init
+
+6. Start the server. Go to (localhost:8000)[localhost:/8000]
+   make start_server
+
+7. Load sample data, run: `make load_sample_data`
+
+You can view the server at (localhost:8000)[localhost:/8000].
+You can view Django Admin and db at (localhost:8000/admin)[localhost:8000/admin]. Login with admin/Admin123.
+
+## Frontend
+
+1. In the `frontend` directory:
+   npm run build
+
+2. Then:
+   npm run start
+
+You can view the server at (localhost:3000)[localhost:/3000].
+
+## Backend Docker Setup
 
 For a quick start, you can use the [docker-compose](docker-compose.yml) file. Take a look at its contents to see what is included.
 
@@ -52,11 +91,3 @@ If you look at the `command` section in [docker-compose.yml](docker-compose.yml)
 4. `python3 manage.py shell` Starts a python shell with Django apps loaded. Very helpful for development. For more details on this, see [iPython](https://ipython.org/) or [Django shell](https://docs.djangoproject.com/en/3.1/ref/django-admin/#shell) docs.
 
 5. The main Django app is [app](server/app), which has files for views, modules etc. See [views.py](server/app/views.py) for view definitions, [templates](server/app/templates) for html files and templates and [urls.py](server/app/urls.py) for urls. See [Django](https://docs.djangoproject.com/en/3.1/) docs for more details.
-
-
-
-
-
-
-
-
