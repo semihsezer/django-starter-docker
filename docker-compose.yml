@@ -1,31 +1,11 @@
 version: "3"
-services:
-  web:
-    image: django-starter-web
-    build: .
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-    environment:
-        DATABASE: postgres
-        POSTGRES_HOST: postgres
-        POSTGRES_USER: base
-        POSTGRES_PASSWORD: development
-        LOG_LEVEL: INFO
-    #command: bash -c "tail -f /dev/null"
-    command: bash -c "python manage.py makemigrations app && python manage.py migrate && python manage.py load_sample_data && python manage.py runserver 0.0.0.0:8000"
-    ports:
-        - "8000:8000"
-    depends_on:
-      - postgres
-    networks:
-      - django-starter-net
-    volumes:
-      - ${REPO_ROOT}/server:/server
 
+volumes:
+  db-data: {}
+
+services:
   postgres:
-    image: postgres:11.6
+    image: postgres:12.18
     deploy:
       replicas: 1
       restart_policy:
@@ -34,11 +14,55 @@ services:
       POSTGRES_USER: base
       POSTGRES_PASSWORD: development
     ports:
-        - "5432:5432"
+      - "5432:5432"
     networks:
-      - django-starter-net
+      - myapp-net
     volumes:
-      - ${REPO_ROOT}/.local/postgres:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
+
+  web:
+    image: myapp-web
+    build: ./server/Dockerfile
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    environment:
+      DATABASE: postgres
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: base
+      POSTGRES_PASSWORD: development
+      LOG_LEVEL: INFO
+    #command: bash -c "tail -f /dev/null"
+    command: bash -c "python manage.py makemigrations app && python manage.py migrate && python manage.py load_sample_data && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    networks:
+      - myapp-net
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  # NGINX For SSL Termination or Load Balancing
+  # nginx:
+  #   image: nginx:1.16
+  #   deploy:
+  #     replicas: 1
+  #     restart_policy:
+  #       condition: on-failure
+  #   environment:
+  #     - REACT_APP_FRONTEND_URL=http://localhost:8080
+  #   ports:
+  #     - "443:443"
+  #     - "8080:8080"
+  #   networks:
+  #     - myapp-net
+  #volumes:
+  #- ${REPO_ROOT}/frontend_react/build:/frontend_react/build
+  #- ${REPO_ROOT}/deploy/nginx/conf.d/nginx.conf:/etc/nginx/conf.d/nginx.conf
+  #- ${REPO_ROOT}/deploy/nginx/web.crt:/etc/nginx/web.crt
+  #- ${REPO_ROOT}/deploy/nginx/web.key:/etc/nginx/web.key
 
 networks:
-  django-starter-net:
+  myapp-net:

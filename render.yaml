@@ -1,0 +1,87 @@
+# Instructions:
+# 1 - Replace  all occurrences of 'base' with the shorthand name of this app
+# 2 - Deploy to render
+# 3 - Fill in environment variables
+# 4 - Once external URLs are assigned, update them in rewrite rules for frontend
+
+databases:
+- name: myapp-postgres
+  databaseName: base
+  user: app
+  plan: free
+  region: frankfurt
+  ipAllowList:
+  - source: 0.0.0.0/0
+    description: everywhere
+  postgresMajorVersion: "16"
+services:
+- name: myapp-api
+  type: web
+  runtime: docker
+  repo: https://github.com/semihsezer/myapp
+  plan: free
+  envVars:
+  - key: PORT
+    value: 8000
+  - key: BACKEND_URL
+    sync: false
+  - key: FRONTEND_URL
+    sync: false
+  - key: POSTGRES_USER
+    sync: false
+  - key: POSTGRES_PASSWORD
+    fromDatabase:
+      name: myapp-postgres
+      property: password
+  - key: POSTGRES_HOST
+    fromDatabase:
+      name: myapp-postgres
+      property: host
+  - key: DJANGO_SECRET_KEY
+    sync: false
+  - key: DJANGO_ALLOWED_HOSTS
+    sync: false
+  - key: DJANGO_DEBUG
+    sync: false
+  - key: GOOGLE_AUTH_CLIENT_SECRET
+    sync: false
+  - key: GOOGLE_AUTH_CLIENT_ID
+    sync: false
+  region: frankfurt
+  dockerCommand: /bin/sh -c python manage.py migrate && python manage.py runserver
+    0.0.0.0:8000
+  dockerContext: .
+  dockerfilePath: ./Dockerfile
+  buildFilter:
+    paths:
+    - server/**
+  rootDir: server
+- type: web
+  name: myapp-ui
+  runtime: static
+  repo: https://github.com/semihsezer/myapp
+  envVars:
+  - key: REACT_APP_BACKEND_URL
+    fromService:
+      name: myapp-api
+      type: web
+      envVarKey: RENDER_EXTERNAL_URL
+  - key: REACT_APP_FRONTEND_URL
+    fromService:
+      name: myapp-ui
+      type: web
+      envVarKey: RENDER_EXTERNAL_URL
+  buildCommand: npm install;CI=false npm run build
+  staticPublishPath: build
+  routes:
+  - type: rewrite
+    source: /api/*
+    destination: https://temp-backend/api/*
+  - type: rewrite
+    source: /*
+    destination: /index.html
+  buildFilter:
+    paths:
+    - frontend_react/**
+  rootDir: frontend_react
+version: "1"

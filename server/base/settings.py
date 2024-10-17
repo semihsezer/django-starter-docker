@@ -10,14 +10,19 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
+from datetime import timedelta
 import os
-import structlog
+import environ
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # Env vars
-DATABASE            = os.environ.get('DATABASE', 'sqlite')
+DATABASE            = os.environ.get('DATABASE', 'postgres')
 DATABASE_NAME       = os.environ.get('DATABASE_NAME', 'base')
 POSTGRES_HOST       = os.environ.get('POSTGRES_HOST', 'localhost')
 POSTGRES_PORT       = os.environ.get('POSTGRES_PORT', 5432)
@@ -28,42 +33,56 @@ POSTGRES_PASSWORD   = os.environ.get('POSTGRES_PASSWORD', 'development')
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '_6qt7&n^^7*414a!u$@6ivtnln*ybc3vyzt-ggzir2-@zo@8-('
+DEV_KEY = "_6qt7&n^^7*414a!u$@6ivtnln*ybc3vyzt-ggzir2-@zo@8-("
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", DEV_KEY)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ['*']
+if os.environ.get("DJANGO_ALLOWED_HOSTS"):
+    ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(",")
+else:
+    ALLOWED_HOSTS = ["*"]
 
 # Required for default site
 SITE_ID=1
 
 # Application definition
-
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.humanize',
-    'django.contrib.sites',
-    'background_task',
-    'app',
-    'reviews',
-    'widget_tweaks',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.humanize",
+    "django.contrib.sites",
+    "corsheaders",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "dj_rest_auth",
+    "allauth",
+    "allauth.account",
+    "dj_rest_auth.registration",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.usersessions",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
+    "django_filters",
+    "app",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_structlog.middlewares.RequestMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'base.urls'
@@ -142,10 +161,70 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    "django.contrib.auth.backends.ModelBackend"
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
+REST_FRAMEWORK = {
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
+}
+
+# Simple JWT Settings
+# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=15),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+}
+
 LOGIN_REDIRECT_URL = '/'
+
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
+
+CORS_ORIGIN_WHITELIST = [
+    FRONTEND_URL,
+    BACKEND_URL,
+]
+
+CSRF_TRUSTED_ORIGINS = [FRONTEND_URL, BACKEND_URL]
+
+# Django Rest Auth
+REST_AUTH = {
+    "USE_JWT": True,
+    "JWT_AUTH_COOKIE": "jwt-auth",
+    "JWT_AUTH_REFRESH_COOKIE": "jwt-refresh",
+    "JWT_AUTH_HTTPONLY": True,
+    "JWT_AUTH_COOKIE_USE_CSRF": True,
+}
+
+# Django Allauth Settings
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": os.environ.get("GOOGLE_AUTH_CLIENT_ID", ""),
+            "secret": os.environ.get("GOOGLE_AUTH_CLIENT_SECRET", ""),
+            "key": "",
+        },
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+    }
+}
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "optional"  # TODO: make it required for production
+ACCOUNT_SIGNUP_REDIRECT_URL = f"{FRONTEND_URL}/discover"
+LOGIN_REDIRECT_URL = f"{FRONTEND_URL}/discover"
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
@@ -160,61 +239,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-# Logging
-
-if os.environ.get('LOGGING_FORMAT') == 'structured':
-    LOGGING = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "json_formatter": {
-                "()": structlog.stdlib.ProcessorFormatter,
-                "processor": structlog.processors.JSONRenderer(),
-            },
-            "plain_console": {
-                "()": structlog.stdlib.ProcessorFormatter,
-                "processor": structlog.dev.ConsoleRenderer(),
-            },
-            "key_value": {
-                "()": structlog.stdlib.ProcessorFormatter,
-                "processor": structlog.processors.KeyValueRenderer(key_order=['timestamp', 'level', 'event', 'logger']),
-            },
-        },
-        "handlers": {
-            "console": {
-                "class": "logging.StreamHandler",
-                "formatter": "json_formatter",
-            },
-        },
-        "loggers": {
-            "": {
-                "handlers": ["console"],
-                "level": "INFO",
-            },
-        }
-    }
-
-
-structlog.configure(
-    processors=[
-        structlog.stdlib.filter_by_level,
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-        structlog.processors.ExceptionPrettyPrinter(),
-        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-    ],
-    context_class=structlog.threadlocal.wrap_dict(dict),
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    wrapper_class=structlog.stdlib.BoundLogger,
-    cache_logger_on_first_use=True,
-)
-
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
