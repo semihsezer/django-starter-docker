@@ -82,6 +82,6 @@ services:
     destination: /index.html
   buildFilter:
     paths:
-    - frontend_react/**
-  rootDir: frontend_react
+    - frontend/**
+  rootDir: frontend
 version: "1"
