@@ -1,14 +1,22 @@
 ### Django Starter Docker
 
-Django Starter project with Docker dev environment and key Django dependencies. Get started in minutes.
+Django React Starter project with virtualenv dev environment and key Django dependencies, auth, etc. configured. It is ready to be deployed to render. Get started in minutes.
 
-- [Django](https://docs.djangoproject.com/en/3.1/)
-- Runtime: Docker & Docker-Compose
-- Python 3.7
+- [Django](https://docs.djangoproject.com/en/3.1/) with Django Rest Framework
+- Auth: Django AllAuth + Google Social Login (if desired)
+- Runtime: Virtualenv & Docker-Compose
+- Python: 3.12
 - DB: Postgres
+- Frontend: React (with Create-React-App). Axios is configured to connect to Django (CORS, token auth, etc.)
+- Backend Testing: backend tests with Pytest
 - Background Tasks: Django Background Tasks
-- Frontend: Basic Bootstrap with Django Templates
-- Basic backend tests with Pytest
+- Deployment: Render PaaS Platform via render.yml
+
+### Prerequisites
+You can install these prerequisites with brew.
+
+- Python 3.12 - `brew install python@3.12`
+- pre-commit - `brew install pre-commit`
 
 ## Template Values to Change
 1. Replace all occurrences of 'myapp' with shorthand name for this app
@@ -91,3 +99,15 @@ If you look at the `command` section in [docker-compose.yml](docker-compose.yml)
 4. `python3 manage.py shell` Starts a python shell with Django apps loaded. Very helpful for development. For more details on this, see [iPython](https://ipython.org/) or [Django shell](https://docs.djangoproject.com/en/3.1/ref/django-admin/#shell) docs.
 
 5. The main Django app is [app](server/app), which has files for views, modules etc. See [views.py](server/app/views.py) for view definitions, [templates](server/app/templates) for html files and templates and [urls.py](server/app/urls.py) for urls. See [Django](https://docs.djangoproject.com/en/3.1/) docs for more details.
+
+## Deployment
+
+This is managed via Render PaaS platform.
+
+1. Go to Render and start a project.
+
+2. Create a new blueprint and point it to this repo and its `render.yml`. It will automatically pull, build, and deploy the images.
+
+3. There 2-3 environment variables you need to manually overwrite. See `render.yml` for details.
+
+Initial deployment should be done in 10-15 minutes.
